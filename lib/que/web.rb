@@ -1,4 +1,5 @@
 require "sinatra/base"
+require "sinatra/jbuilder"
 require "cgi"
 
 module Que
@@ -46,6 +47,16 @@ module Que
       events = Que.execute SQL[:chi_events], [pager.page_size, pager.offset, search]
       @list = Viewmodels::EventList.new(events, pager)
       erb :chi_events
+    end
+
+    get "/events.json" do
+      stats = Que.execute SQL[:event_dashboard_stats], [search]
+      pager = get_pager stats[0][:total]
+      events = Que.execute SQL[:chi_data_events], [data_search]
+      remote_events = Que.execute SQL[:chi_remote_data_events], [{"chi_event":{"data":data_search}}]
+      @events_list = Viewmodels::EventList.new(events, pager)
+      @remote_events_list = Viewmodels::RemoteEventList.new(remote_events, pager)
+      jbuilder :chi_events
     end
 
     get "/chi_remote_events" do
@@ -201,6 +212,11 @@ module Que
       def search
         return '%' unless search_param
         "%#{search_param}%"
+      end
+
+      def data_search
+        value = params[:value_type] == "int" ? params[:value].to_i : params[:value]
+        {"#{params[:key]}": value}
       end
 
       def search_running(jobs)

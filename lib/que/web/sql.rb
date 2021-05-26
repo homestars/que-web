@@ -77,6 +77,20 @@ Que::Web::SQL = {
     LIMIT $1::int
     OFFSET $2::int
   SQL
+  chi_data_events: <<-SQL.freeze,
+    SELECT *
+    FROM chi_events
+    WHERE
+      data @> $1::jsonb
+    ORDER BY event_order desc
+  SQL
+  chi_remote_data_events: <<-SQL.freeze,
+    SELECT *
+    FROM chi_remote_events
+    WHERE
+      data @> $1::jsonb
+    ORDER BY event_order desc
+  SQL
   chi_remote_events: <<-SQL.freeze,
     SELECT *
     FROM chi_remote_events
