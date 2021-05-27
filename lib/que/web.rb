@@ -214,7 +214,7 @@ module Que
       end
 
       def data_search
-        value = params[:key]&.index('_id') ? params[:value].to_i : params[:value]
+        value = params[:value]&.match?(/\A\d+\z/)? params[:value].to_i : params[:value]
         {"#{params[:key]}": value}
       end
 
