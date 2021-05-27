@@ -5,6 +5,7 @@ require "cgi"
 module Que
   class Web < Sinatra::Base
     PAGE_SIZE = 20
+    JSON_LIMIT = 500
     FLASH_KEY = 'que.web.flash'.freeze
 
     use Rack::MethodOverride
@@ -50,12 +51,10 @@ module Que
     end
 
     get "/events.json" do
-      stats = Que.execute SQL[:event_dashboard_stats], [search]
-      pager = get_pager stats[0][:total]
-      events = Que.execute SQL[:chi_data_events], [data_search]
-      remote_events = Que.execute SQL[:chi_remote_data_events], [{"chi_event":{"data":data_search}}]
-      @events_list = Viewmodels::EventList.new(events, pager)
-      @remote_events_list = Viewmodels::RemoteEventList.new(remote_events, pager)
+      events = Que.execute SQL[:chi_data_events], [JSON_LIMIT, data_search]
+      remote_events = Que.execute SQL[:chi_remote_data_events], [JSON_LIMIT, {"chi_event":{"data":data_search}}]
+      @events_list = Viewmodels::EventList.new(events)
+      @remote_events_list = Viewmodels::RemoteEventList.new(remote_events)
       jbuilder :chi_events
     end
 
@@ -215,7 +214,7 @@ module Que
       end
 
       def data_search
-        value = params[:value_type] == "int" ? params[:value].to_i : params[:value]
+        value = params[:key]&.index('_id') ? params[:value].to_i : params[:value]
         {"#{params[:key]}": value}
       end
 

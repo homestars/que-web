@@ -81,15 +81,17 @@ Que::Web::SQL = {
     SELECT *
     FROM chi_events
     WHERE
-      data @> $1::jsonb
+      data @> $2::jsonb
     ORDER BY event_order desc
+    LIMIT $1::int
   SQL
   chi_remote_data_events: <<-SQL.freeze,
     SELECT *
     FROM chi_remote_events
     WHERE
-      data @> $1::jsonb
+      data @> $2::jsonb
     ORDER BY event_order desc
+    LIMIT $1::int
   SQL
   chi_remote_events: <<-SQL.freeze,
     SELECT *
